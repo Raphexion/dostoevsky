@@ -28,9 +28,16 @@ start_link() ->
 
 %% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    Children = [{poster,
-		 {poster, start_link, []},
-		 permanent, 5000, worker, [poster]}],
+    Db = {
+      db,
+      {db, start_link, []},
+      permanent, 5000, worker, [db]},
+    Poster = {
+      poster,
+      {poster, start_link, []},
+      permanent, 5000, worker, [poster]},
+
+    Children = [Db, Poster],
     {ok, { {one_for_all, 0, 1}, Children} }.
 
 %%====================================================================

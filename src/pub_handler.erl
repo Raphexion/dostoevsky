@@ -39,7 +39,7 @@ handle({[]}) ->
     error;
 
 handle({[{Topic, Data}]}) ->
-    lager:info("New Topic: ~p", [Topic]),
+    db:post(Topic, Data),
     ok;
 
 handle(BadFormat) ->
