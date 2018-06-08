@@ -37,7 +37,7 @@ to get a REST POST message to a known endpoint.
 
 CAd sends (HTTP POST) /sub/
 
-	{"NEW_CAR": {"url": "http://1.2.3.4:8080/foo", "history": true}
+	{"NEW_CAR": {"url": "http://1.2.3.4:8080/foo", "history": true}}
 
 This will cause Dostoevsky to send all of the DShip items to the endpoint,
 one after another.
