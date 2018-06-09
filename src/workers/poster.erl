@@ -4,7 +4,8 @@
 -define(SERVER, ?MODULE).
 
 -export([start_link/0]).
--export([post/2]).
+-export([send_item_to_clients/2,
+	 send_items_to_client/2]).
 
 -export([init/1,
 	 handle_call/3,
@@ -13,17 +14,32 @@
 	 terminate/2,
 	 code_change/3]).
 
+%%%
+%% API
+%%%
+
 start_link() ->
     gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-post(Data, Clients) ->
-    gen_server:call(?SERVER, {post, Data, Clients}).
+send_item_to_clients(Item, Clients) ->
+    gen_server:call(?SERVER, {send_item_to_clients, Item, Clients}).
+
+send_items_to_client(Items, Client) ->
+    gen_server:call(?SERVER, {send_items_to_client, Items, Client}).
+
+%%%
+%%
+%%%
 
 init(_) ->
     {ok, []}.
 
-handle_call({post, Data, Clients}, _From, State) ->
-    {ok, Res} = post_to_clients(Data, Clients),
+handle_call({send_item_to_clients, Item, Clients}, _From, State) ->
+    Res = poster_p:send_item_to_clients(Item, Clients),
+    {reply, {ok, Res}, State};
+
+handle_call({send_items_to_client, Item, Clients}, _From, State) ->
+    Res = poster_p:send_items_to_client(Item, Clients),
     {reply, {ok, Res}, State};
 
 handle_call(What, _From, State) ->
@@ -46,35 +62,3 @@ code_change(_OldVsn, State, _Extra) ->
     %% No change planned. The function is there for the behaviour,
     %% but will not be used. Only a version on the next
     {ok, State}.
-
-%%%
-%%
-%%%
-
-client_status(Client, {ok, {{_, 200, _}, _, _}}) ->
-    {Client, ok};
-
-client_status(Client, {ok, {{_, 404, _}, _, _}}) ->
-    {Client, not_found};
-
-client_status(Client, Blob) ->
-    {Client, Blob}.
-
-post_to_client(_Data, Client) ->
-    client_status(Client, httpc:request(Client)).
-
-%
-%
-
-post_to_clients(_Data, [], Status) ->
-    {ok, Status};
-
-post_to_clients(Data, [H | T], Status) ->
-    Res = post_to_client(Data, H),
-    post_to_clients(Data, T, [Res | Status]).
-
-%
-%
-
-post_to_clients(Data, Clients) ->
-    post_to_clients(Data, Clients, []).
