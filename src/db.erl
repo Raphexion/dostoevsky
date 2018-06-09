@@ -50,13 +50,11 @@ handle_call(What, _From, State) ->
 
 handle_cast({post, Topic, Item}, State0) ->
     State = post(Topic, Item, State0),
-    debug(State),
     {noreply, State};
 
 handle_cast({attach, Client, Topic}, State0) ->
     send_history(Client, Topic, State0),
     State = attach(Client, Topic, State0),
-    debug(State),
     {noreply, State};
 
 handle_cast(_What, State) ->
