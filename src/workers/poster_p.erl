@@ -48,8 +48,11 @@ client_status(Client, Blob) ->
 %%
 %%%
 
+default_sender({Item, Client}) when is_binary(Client) ->
+    default_sender({Item, binary_to_list(Client)});
+
 default_sender({Item, Client}) ->
-    client_status(Client, httpc:request(post, Client, ?HEADERS, ?CONTENT_TYPE, Item)).
+    client_status(Client, httpc:request(post, {Client, ?HEADERS, ?CONTENT_TYPE, Item}, [], [])).
 
 mock_sender({Item, Client}) ->
     {send, {Item, Client}}.

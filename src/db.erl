@@ -70,7 +70,7 @@ handle_info(_What, State) ->
 %
 
 terminate(Reason, _State) ->
-    lager:error("~p terminates because of ~p", [?SERVER, Reason]),
+    % lager:error("~p terminates because of ~p", [?SERVER, Reason]),
     ok.
 
 %
@@ -91,7 +91,8 @@ post(Topic, _Item, error) ->
     ok;
 
 post(Topic, Item, {ok, Clients}) ->
-    poster:send_item_to_clients(jiffy:encode(#{Topic => Item}), Clients),
+    E = jiffy:encode({[{Topic, Item}]}),
+    poster:send_item_to_clients(E, Clients),
     ok.
 
 %%%
@@ -102,7 +103,7 @@ send_history(_Client, _Topic, []) ->
     ok;
 
 send_history(Client, Topic, [{Topic, H} | T]) ->
-    poster:send_item_to_clients(Client, jiffy:encode(#{Topic => H})),
+    % poster:send_item_to_clients(jiffy:encode({[{Topic, H}]}), Client),
     send_history(Client, Topic, T);
 
 send_history(Client, Topic, [_H | T]) ->
