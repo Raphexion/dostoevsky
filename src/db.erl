@@ -7,7 +7,9 @@
 
 -export([start_link/0]).
 -export([post/2,
-	 attach/2]).
+	 attach/2,
+	 reset/0,
+	 debug/1]).
 
 -export([init/1,
 	 handle_call/3,
@@ -28,6 +30,9 @@ post(Topic, Item) ->
 
 attach(Client, Topic) ->
     gen_server:cast(?SERVER, {attach, Client, Topic}).
+
+reset() ->
+    gen_server:cast(?SERVER, reset).
 
 %%%
 %%
@@ -56,6 +61,9 @@ handle_cast({attach, Client, Topic}, State0) ->
     send_history(Client, Topic, State0),
     State = attach(Client, Topic, State0),
     {noreply, State};
+
+handle_cast(reset, State) ->
+    {noreply, reset(State)};
 
 handle_cast(_What, State) ->
     {noreply, State}.
@@ -127,6 +135,13 @@ attach(Client, Topic, State=#state{clients=ClientMap0}) ->
     lager:info("attach ~p to ~p", [Client, Topic]),
     ClientMap = attach(Client, Topic, ClientMap0, maps:find(Topic, ClientMap0)),
     State#state{clients=ClientMap}.
+
+%%%
+%%
+%%%
+
+reset(_State) ->
+    #state{}.
 
 %%%
 %%
