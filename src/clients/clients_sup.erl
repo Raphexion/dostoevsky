@@ -3,7 +3,7 @@
 %% @end
 %%%-------------------------------------------------------------------
 
--module(dostoevsky_sup).
+-module(clients_sup).
 
 -behaviour(supervisor).
 
@@ -12,6 +12,8 @@
 
 %% Supervisor callbacks
 -export([init/1]).
+
+%% API
 
 -define(SERVER, ?MODULE).
 
@@ -26,23 +28,10 @@ start_link() ->
 %% Supervisor callbacks
 %%====================================================================
 
-%% Child :: {Id,StartFunc,Restart,Shutdown,Type,Modules}
 init([]) ->
-    Db = {
-      db,
-      {db, start_link, []},
-      permanent, 5000, worker, [db]},
-    Poster = {
-      poster,
-      {poster, start_link, []},
-      permanent, 5000, worker, [poster]},
-    ClientSup = {
-      clients_sup,
-      {clients_sup, start_link, []},
-      permanent, 5000, supervisor, [clients_sup]},
-
-    Children = [Db, Poster, ClientSup],
-    {ok, { {one_for_all, 0, 1}, Children} }.
+    ClientSpec = {client, {client, start_link, []},
+		  temporary, 2000, worker, [client]},
+    {ok, {{simple_one_for_one, 1, 1}, [ClientSpec]}}.
 
 %%====================================================================
 %% Internal functions

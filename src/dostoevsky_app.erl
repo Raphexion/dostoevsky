@@ -27,6 +27,7 @@ start(_StartType, _StartArgs) ->
     {ok, _} = cowboy:start_clear(http, [{port, 7070}], #{
 					 env => #{dispatch => Dispatch}
 					}),
+    %% clients_sup:start_link(),
     dostoevsky_sup:start_link().
 
 %%--------------------------------------------------------------------

@@ -76,7 +76,7 @@ handle_info(_What, State) ->
 %
 
 terminate(Reason, _State) ->
-    % lager:error("~p terminates because of ~p", [?SERVER, Reason]),
+    lager:error("~p terminates because of ~p", [?SERVER, Reason]),
     ok.
 
 %

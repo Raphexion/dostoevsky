@@ -7,6 +7,7 @@
 
 -export([default_sender/1,
 	 mock_sender/1,
+	 client_status/2,
 	 send_item_to_clients/2,
 	 send_item_to_clients/3,
 	 send_items_to_client/2,
