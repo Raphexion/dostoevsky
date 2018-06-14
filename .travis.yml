@@ -3,3 +3,15 @@ language: erlang
 otp_release:
   - 20.2
   - 19.3
+
+install:
+    pip install --user --disable-pip-version-check codecov
+
+script:
+  - rebar3 compile
+  - rebar3 eunit
+  - rebar3 cover
+  - rebar3 release
+
+after_success:
+    codecov
