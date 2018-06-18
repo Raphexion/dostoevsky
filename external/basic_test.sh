@@ -6,7 +6,7 @@ callback_url2="http://localhost:7072"
 
 for ii in {1..2}
 do
-  curl -d '{"abc": {"ii": '${ii}'}}' ${url}/pub
+  curl -d '{"ii": '${ii}'}' ${url}/pub/abc
 done
 
 # attach
@@ -17,5 +17,5 @@ curl -d '{"topic": "abc", "url": "'${callback_url1}'"}' ${url}/sub
 
 for ii in {11..12}
 do
-  curl -d '{"abc": {"ii": '${ii}'}}' ${url}/pub
+  curl -d '{"ii": '${ii}'}' ${url}/pub/abc
 done

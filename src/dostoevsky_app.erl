@@ -18,7 +18,7 @@
 start(_StartType, _StartArgs) ->
     Dispatch = cowboy_router:compile([
 				      {'_', [
-					     {"/pub", pub_handler, []},
+					     {"/pub/:topic", pub_handler, []},
 					     {"/sub", sub_handler, []},
 					     {"/", cowboy_static, {priv_file, dostoevsky, "static/index.html"}},
 					     {"/assets/[...]", cowboy_static, {priv_dir, dostoevsky, "static/assets"}}

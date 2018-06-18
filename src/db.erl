@@ -57,7 +57,8 @@ handle_cast({post, Topic, Item}, State0) ->
     State = post(Topic, Item, State0),
     {noreply, State};
 
-handle_cast({attach, Client, Topic}, State0) ->
+handle_cast({attach, ClientUrl, Topic}, State0) ->
+    {ok, Client} = clients_sup:start_client(ClientUrl),
     send_history(Client, Topic, State0),
     State = attach(Client, Topic, State0),
     {noreply, State};
@@ -96,9 +97,7 @@ post(Topic, _Item, error) ->
     lager:info("no clients for topic ~p", [Topic]),
     ok;
 
-post(Topic, Item, {ok, Clients}) ->
-    E = jiffy:encode({[{Topic, Item}]}),
-    poster:send_item_to_clients(E, Clients),
+post(_Topic, _Item, {ok, _Clients}) ->
     ok.
 
 %%%
@@ -108,9 +107,9 @@ post(Topic, Item, {ok, Clients}) ->
 send_history(_Client, _Topic, []) ->
     ok;
 
-send_history(Client, Topic, [{Topic, H} | T]) ->
-    % poster:send_item_to_clients(jiffy:encode({[{Topic, H}]}), Client),
-    send_history(Client, Topic, T);
+send_history(Client, Topic, [{Topic, Data} | Tail]) ->
+    client:send(Client, Data),
+    send_history(Client, Topic, Tail);
 
 send_history(Client, Topic, [_H | T]) ->
     send_history(Client, Topic, T);
@@ -124,15 +123,12 @@ send_history(Client, Topic, State=#state{items=Items}) ->
 %%%
 
 attach(Client, Topic, ClientMap, error) ->
-    lager:info("first attacher of ~p", [Topic]),
     maps:put(Topic, [Client], ClientMap);
 
 attach(Client, Topic, ClientMap, {ok, Clients}) ->
-    lager:info("one of many attacher of ~p", [Topic]),
     maps:put(Topic, [Client | Clients], ClientMap).
 
 attach(Client, Topic, State=#state{clients=ClientMap0}) ->
-    lager:info("attach ~p to ~p", [Client, Topic]),
     ClientMap = attach(Client, Topic, ClientMap0, maps:find(Topic, ClientMap0)),
     State#state{clients=ClientMap}.
 
