@@ -5,6 +5,7 @@
 
 -define(HEADERS, []).
 -define(CONTENT_TYPE, "application/json").
+-define(TIMEOUT_S, 2).
 
 -export([start_link/1,
 	 send/2]).
@@ -38,7 +39,16 @@ handle_call(What, _From, State) ->
 
 handle_cast({send, Payload}, State) ->
     {ok, Url} = maps:find(url, State),
-    httpc:request(post, {Url, ?HEADERS, ?CONTENT_TYPE, Payload}, [], []),
+    case httpc:request(post, {Url, ?HEADERS, ?CONTENT_TYPE, Payload}, [{timeout, timer:seconds(?TIMEOUT_S)}], []) of
+	{error, timeout} ->
+	    lager:error("client timeout ~p", [Url]);
+
+	{error, {failed_connect, _}} ->
+	    lager:error("client failed to connect ~p", [Url]);
+
+	Res ->
+	    lager:error("client ~p", [Res])
+    end,
     {noreply, State};
 
 handle_cast(_What, State) ->
