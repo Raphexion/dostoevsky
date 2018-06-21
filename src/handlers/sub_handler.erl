@@ -1,7 +1,6 @@
 -module(sub_handler).
 
--export([init/2,
-	 content_types_provided/2]).
+-export([init/2]).
 
 init(Req0, Opts) ->
     Method = cowboy_req:method(Req0),
@@ -9,20 +8,15 @@ init(Req0, Opts) ->
     Req = maybe_sub(Method, HasBody, Req0),
     {ok, Req, Opts}.
 
-content_types_provided(Req, State) ->
-    {[
-      {<<"application/json">>, sub_json}
-     ], Req, State}.
-
 maybe_sub(<<"POST">>, true, Req0) ->
     {ok, Body, Req} = read_body(Req0),
     try jiffy:decode(Body) of
 	Data ->
-	    lager:info("ok json encoded sub"),
-	    response(Req, handle(Data))
+	    lager:info("json ok"),
+	    response(Req, handle(to_dict(Data)))
     catch
 	_:_ ->
-	    lager:info("bad json encoded sub"),
+	    lager:info("json error"),
 	    failure_sub(Req)
     end;
 
@@ -53,17 +47,13 @@ success_sub(Req) ->
 %%
 %%%
 
-handle({[]}) ->
-    lager:info("empty body"),
-    error;
-
-handle({[{<<"topic">>, Topic}, {<<"url">>, Url}]}) ->
+handle(#{<<"url">> := Url, <<"topic">> := Topic}) ->
     db:attach(Url, Topic),
     ok;
 
-handle(BadFormat) ->
-    lager:warning("Bad formating ~p", [BadFormat]),
-    error.
+handle(_) ->
+    lager:error("subscribtion failed: missing url").
+
 
 %%%
 %%
@@ -77,3 +67,17 @@ read_body(Req0, Acc) ->
 
 read_body(Req0) ->
     read_body(Req0, <<"">>).
+
+%%%
+%%
+%%%
+
+to_dict({List}) ->
+    to_dict(List, #{}).
+
+to_dict([], D) ->
+    D;
+
+to_dict([{Key, Value} | Tail], Dict) ->
+    lager:info("Added key ~p: ~p to ~p", [Key, Value, Dict]),
+    to_dict(Tail, Dict#{Key => Value}).

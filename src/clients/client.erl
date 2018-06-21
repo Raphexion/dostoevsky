@@ -32,6 +32,7 @@ send(Client, Data) ->
 %%====================================================================
 
 init(Url) ->
+    lager:info("new client: ~p", [Url]),
     {ok, #{url => Url}}.
 
 handle_call(What, _From, State) ->
