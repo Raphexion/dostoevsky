@@ -7,6 +7,8 @@
 -define(CONTENT_TYPE, "application/json").
 -define(TIMEOUT_S, 2).
 
+-define(DEFAULT_HTTPC, httpc).
+
 -export([start_link/1,
 	 send/2]).
 
