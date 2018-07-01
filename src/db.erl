@@ -90,6 +90,7 @@ code_change(_OldVsn, State, _Extra) ->
 %%%
 
 post(Topic, Item, #state{items=Items, clients=Clients}) ->
+    lager:info("attempt post ~p ~p", [Topic, Item]),
     post(Topic, Item, maps:find(Topic, Clients)),
     #state{items=[{Topic, Item} | Items], clients=Clients};
 
@@ -97,8 +98,18 @@ post(Topic, _Item, error) ->
     lager:info("no clients for topic ~p", [Topic]),
     ok;
 
-post(_Topic, _Item, {ok, _Clients}) ->
-    ok.
+post(Topic, Item, {ok, Clients}) ->
+    lager:info("clients for topic ~p ~p", [Topic, Clients]),
+    post(Topic, Item, Clients);
+
+post(Topic, Item, []) ->
+    lager:info("db done. no more clients for ~p ~p", [Topic, Item]),
+    ok;
+
+post(Topic, Item, [Client | Rest]) ->
+    lager:info("send to client ~p", [Client]),
+    client:send(Client, Item),
+    post(Topic, Item, Rest).
 
 %%%
 %%
